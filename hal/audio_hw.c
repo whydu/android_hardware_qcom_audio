@@ -2992,6 +2992,9 @@ static int stop_output_stream(struct stream_out *out)
 
         if (adev->offload_effects_stop_output != NULL)
             adev->offload_effects_stop_output(out->handle, out->pcm_device_id);
+    } else if (out->usecase == USECASE_AUDIO_PLAYBACK_ULL ||
+               out->usecase == USECASE_AUDIO_PLAYBACK_MMAP) {
+        audio_low_latency_hint_end();
     }
 
     if (out->usecase == USECASE_INCALL_MUSIC_UPLINK ||
@@ -3351,6 +3354,12 @@ int start_output_stream(struct stream_out *out)
 
     audio_streaming_hint_end();
     audio_extn_perf_lock_release(&adev->perf_lock_handle);
+
+    if (out->usecase == USECASE_AUDIO_PLAYBACK_ULL ||
+        out->usecase == USECASE_AUDIO_PLAYBACK_MMAP) {
+        audio_low_latency_hint_start();
+    }
+
     ALOGD("%s: exit", __func__);
 
     if (out->ip_hdlr_handle) {
